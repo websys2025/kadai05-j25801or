@@ -28,16 +28,16 @@
                 const data = await response.json();
 
                 if (data.status === 200 && data.results) {
-                    // 成功した場合、住所を組み立てて表示（上記表示を上書き）
+                    // 成功した場合、住所を組み立てて表示
                     const result = data.results[0];
                     const address = result.address1 + result.address2 + result.address3;
                     resultDiv.innerHTML = address;
                 } else {
-                    // APIがエラーを返した場合や、結果がなかった場合（上記表示を上書き）
+                    // APIがエラーを返した場合や、結果がなかった時
                     resultDiv.innerHTML = data.message || "該当する住所が見つかりませんでした。";
                 }
             } catch (error) {
-                // 通信エラーなどが発生した場合（上記表示を上書き）
+                // 通信エラーなどが発生した時
                 resultDiv.innerHTML = "APIの呼び出しに失敗しました。";
                 console.error("API Error:", error);
             }
