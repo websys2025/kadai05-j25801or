@@ -1,12 +1,18 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>演習課題5-2：外部APIの呼び出しテスト</title>
+    <title>演習課題5-2：郵便番号検索APIテスト</title>
+    <style>
+        body { font-family: sans-serif; }
+        #result p { margin: 0.5em 0; padding: 0.5em; border-left: 4px solid #007bff; }
+        #result hr { border: 0; border-top: 1px solid #ccc; margin: 1em 0; }
+    </style>
 </head>
 <body>
-    <h1 id="msg">何かのAPI</h1>
+    <h1 id="msg">郵便番号検索API</h1>
     <form name="apiform"><p>
-        何かのフォーム：<input type="text" name="form_data">
+        郵便番号（7桁・ハイフンなし）：<input type="text" name="form_data" placeholder="例: 1000001">
         <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
     </p></form>
     
@@ -14,7 +20,55 @@
     <script>
         async function some_api(myForm) {
             // ここにコードを書く
-            document.getElementById("result").innerHTML += myForm.form_data.value+"<br />";
+            const resultDiv = document.getElementById("result");
+            const zipcode = myForm.form_data.value;
+
+            if (!zipcode) {
+                resultDiv.innerHTML += '<p style="color: red;">郵便番号を入力してください。</p>';
+                document.apiform.reset();
+                return; 
+            }
+
+            const apiUrl = `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipcode}`;
+
+            try {
+
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+    
+                    throw new Error(`ネットワークエラーが発生しました (ステータス: ${response.status})`);
+                }
+                
+                
+                const data = await response.json();
+
+                
+                if (data.status === 200 && data.results) {
+                    
+                    const addressInfo = data.results[0];
+                    const addressHtml = `
+                        <p>
+                            検索ワード: <strong>${zipcode}</strong><br>
+                            〒${addressInfo.zipcode}<br>
+                            ${addressInfo.address1}${addressInfo.address2}${addressInfo.address3}
+                        </p><hr>
+                    `;
+                    
+                    resultDiv.innerHTML += addressHtml;
+                } else {
+                    
+                    const errorMessage = data.message || `「${zipcode}」に該当する住所は見つかりませんでした。`;
+                    resultDiv.innerHTML += `<p style="color: orange;">${errorMessage}</p><hr>`;
+                }
+
+            } catch (error) {
+                
+                console.error("APIの呼び出しに失敗しました:", error);
+                resultDiv.innerHTML += `<p style="color: red;">エラーが発生しました: ${error.message}</p><hr>`;
+            }
+            
+            
             document.apiform.reset();
         }
     </script>
